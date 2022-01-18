@@ -3,17 +3,11 @@ current_branch := $(shell git rev-parse --abbrev-ref HEAD)
 .PHONY: build
 build:
 	docker build -t hbase-base:latest ./base
-	docker build -t hbase-master:latest ./hmaster
-	docker build -t hbase-regionserver:latest ./hregionserver
 
 .PHONY: tag
 tag:
 	docker tag hbase-base:latest firefoxx04/hbase-base:latest
-	docker tag hbase-master:latest firefoxx04/hbase-master:latest
-	docker tag hbase-regionserver:latest firefoxx04/hbase-regionserver:latest
 	docker tag hbase-base:latest firefoxx04/hbase-base:$(current_branch)
-	docker tag hbase-master:latest firefoxx04/hbase-master:$(current_branch)
-	docker tag hbase-regionserver:latest firefoxx04/hbase-regionserver:$(current_branch)
 
 # run one time to re-tag hadoop images
 .PHONY: push-hadoop
@@ -41,8 +35,4 @@ push-hadoop:
 .PHONY: build
 push: build tag
 	docker push firefoxx04/hbase-base:latest
-	docker push firefoxx04/hbase-master:latest
-	docker push firefoxx04/hbase-regionserver:latest
 	docker push firefoxx04/hbase-base:$(current_branch)
-	docker push firefoxx04/hbase-master:$(current_branch)
-	docker push firefoxx04/hbase-regionserver:$(current_branch)
