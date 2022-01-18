@@ -2,7 +2,7 @@ version: "3"
 
 services:
   namenode:
-    image: bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8
+    image: firefoxx04/hadoop-namenode:latest
     container_name: namenode
     volumes:
       - hadoop_namenode:/hadoop/dfs/name
@@ -14,7 +14,7 @@ services:
       - 50070:50070
 
   datanode:
-    image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
+    image: firefoxx04/hadoop-datanode:latest
     container_name: datanode
     volumes:
       - hadoop_datanode:/hadoop/dfs/data
@@ -24,9 +24,11 @@ services:
       - ./hadoop.env
     ports:
       - 50075:50075
+    depends_on:
+      - "namenode"
 
   resourcemanager:
-    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop2.7.4-java8
+    image: firefoxx04/hadoop-resourcemanager:latest
     container_name: resourcemanager
     environment:
       SERVICE_PRECONDITION: "namenode:50070 datanode:50075"
@@ -34,9 +36,12 @@ services:
       - ./hadoop.env
     ports:
       - 8088:8088
+    depends_on:
+      - "namenode"
+      - "datanode"
 
   nodemanager1:
-    image: bde2020/hadoop-nodemanager:2.0.0-hadoop2.7.4-java8
+    image: firefoxx04/hadoop-nodemanager:latest
     container_name: nodemanager
     environment:
       SERVICE_PRECONDITION: "namenode:50070 datanode:50075 resourcemanager:8088"
@@ -44,9 +49,13 @@ services:
       - ./hadoop.env
     ports:
       - 8042:8042
+    depends_on:
+      - "namenode"
+      - "datanode"
+      - "resourcemanager"
 
   historyserver:
-    image: bde2020/hadoop-historyserver:2.0.0-hadoop2.7.4-java8
+    image: firefoxx04/hadoop-historyserver:latest
     container_name: historyserver
     volumes:
       - hadoop_historyserver:/hadoop/yarn/timeline
@@ -56,7 +65,11 @@ services:
       - ./hadoop.env
     ports:
       - 8188:8188
-  
+    depends_on:
+      - "namenode"
+      - "datanode"
+      - "resourcemanager"
+
   zoo:
     image: zookeeper:3.4.10
     container_name: zoo
@@ -67,7 +80,7 @@ services:
       - 2181:2181
 
   hbase-master:
-    image: bde2020/hbase-master:1.0.0-hbase1.2.6
+    image: firefoxx04/hbase-master:latest
     container_name: hbase-master
     hostname: hbase-master
     env_file:
@@ -76,9 +89,13 @@ services:
       SERVICE_PRECONDITION: "namenode:50070 datanode:50075 zoo:2181"
     ports:
       - 16010:16010
+    depends_on:
+      - "namenode"
+      - "zoo"
+      - "datanode"
 
   hbase-region:
-    image: bde2020/hbase-regionserver:1.0.0-hbase1.2.6
+    image: firefoxx04/hbase-regionserver:latest
     container_name: hbase-regionserver
     hostname: hbase-regionserver
     env_file:
@@ -88,6 +105,11 @@ services:
       SERVICE_PRECONDITION: "namenode:50070 datanode:50075 zoo:2181 hbase-master:16010"
     ports:
       - 16030:16030
+    depends_on:
+      - "namenode"
+      - "hbase-master"
+      - "zoo"
+      - "datanode"
 
 volumes:
   hadoop_namenode:
